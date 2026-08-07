@@ -1,0 +1,67 @@
+import 'dart:developer';
+
+import 'package:fpdart/fpdart.dart';
+import 'package:new_blog_app/core/errors/failure.dart';
+import 'package:new_blog_app/core/errors/server_exception.dart';
+import 'package:new_blog_app/features/auth/data/data_sources/auth_remote_data_source.dart';
+import 'package:new_blog_app/core/common/entities/user.dart';
+import 'package:new_blog_app/features/auth/domain/repository/auth_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+
+class AuthRepositoryImpl implements AuthRepository {
+  final AuthRemoteDataSource authRemoteDataSource;
+
+  AuthRepositoryImpl({required this.authRemoteDataSource});
+  @override
+  Future<Either<Failure, User>> logIn({
+    required String email,
+    required String password,
+  }) {
+    // log(email);
+    return _getUser(
+      () async =>
+          await authRemoteDataSource.logIn(email: email, password: password),
+    );
+  }
+
+  @override
+  Future<Either<Failure, User>> signUpWithEmailPassword({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    return _getUser(
+      () async => await authRemoteDataSource.signUpWithEmailPassword(
+        name: name,
+        email: email,
+        password: password,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, User>> currentUser() async {
+    try {
+      final user = await authRemoteDataSource.getCurrentUserData();
+
+      if (user == null) {
+        return left(Failure('User Not Logged In'));
+      }
+
+      return right(user);
+    } on ServerException catch (e) {
+      return left(Failure(e.message));
+    }
+  }
+
+  Future<Either<Failure, User>> _getUser(Future<User> Function() fn) async {
+    try {
+      final user = await fn();
+      return right(user);
+    } on AuthException catch (e) {
+      return left(Failure(e.message));
+    } on ServerException catch (e) {
+      return left(Failure(e.message));
+    }
+  }
+}
