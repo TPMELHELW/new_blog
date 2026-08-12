@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:new_blog_app/core/common/cubit/app_user_cubit.dart';
+import 'package:new_blog_app/core/network/connection_checker.dart';
 import 'package:new_blog_app/core/secrets/app_secrets.dart';
 import 'package:new_blog_app/features/auth/data/data_sources/auth_remote_data_source.dart';
 import 'package:new_blog_app/features/auth/data/repository/auth_repository_impl.dart';
@@ -25,10 +27,15 @@ Future<void> initDependencies() async {
     url: AppSecrets.url,
     publishableKey: AppSecrets.anonKey,
   );
+  servicesLocator.registerFactory(() => InternetConnection());
 
   servicesLocator.registerLazySingleton(() => supabase.client);
 
   servicesLocator.registerLazySingleton(() => AppUserCubit());
+
+  servicesLocator.registerLazySingleton<ConnectionChecker>(
+    () => ConnectionCheckerImpl(internetConnection: servicesLocator()),
+  );
 }
 
 void _initAuth() {
@@ -37,7 +44,10 @@ void _initAuth() {
       () => AuthRemoteDataSourceImpl(supabaseClient: servicesLocator()),
     )
     ..registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(authRemoteDataSource: servicesLocator()),
+      () => AuthRepositoryImpl(
+        authRemoteDataSource: servicesLocator(),
+        connectionChecker: servicesLocator<ConnectionCheckerImpl>(),
+      ),
     )
     ..registerLazySingleton<UserSignUpUsecase>(
       () => UserSignUpUsecase(authRepository: servicesLocator()),
