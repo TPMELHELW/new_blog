@@ -48,7 +48,7 @@ A modern **Flutter Blog Application** built with **Clean Architecture** and **BL
 
 | Home | Login | SignUp | AddBlog |
 |------|-------|--------| ------- |
-| ![Home](assets/screenshots/home.jpg) | ![Login](assets/screenshots/login.jpg) | ![SignUp](assets/screenshots/signup.jpg) | ![AddBlog](assets/screenshots/addblog.jpg)
+| ![Home](assets/screenshots/home.jpg) | ![Login](assets/screenshots/signin.jpg) | ![SignUp](assets/screenshots/signup.jpg) | ![AddBlog](assets/screenshots/addblog.jpg)
 
 ### 🔑 Authentication
 
