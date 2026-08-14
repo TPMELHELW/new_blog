@@ -8,6 +8,7 @@ import 'package:new_blog_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:new_blog_app/features/auth/presentation/pages/signup_page.dart';
 import 'package:new_blog_app/features/auth/presentation/widgets/auth_field_widget.dart';
 import 'package:new_blog_app/features/auth/presentation/widgets/gredient_button_widget.dart';
+import 'package:new_blog_app/features/blog/presentation/pages/blog_page.dart';
 
 class LoginPage extends StatefulWidget {
   static MaterialPageRoute<dynamic> route() =>
@@ -41,6 +42,12 @@ class _LoginPageState extends State<LoginPage> {
           listener: (context, state) {
             if (state is AuthFailure) {
               showSnackBar(context, state.message);
+            } else if (state is AuthSucces) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                BlogPage.route(),
+                (route) => false,
+              );
             }
           },
           builder: (context, state) {
@@ -103,7 +110,11 @@ class _LoginPageState extends State<LoginPage> {
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   // Navigate to the login page
-                                  Navigator.push(context, SignupPage.route());
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    SignupPage.route(),
+                                    (route) => false,
+                                  );
                                 },
                             ),
                           ],

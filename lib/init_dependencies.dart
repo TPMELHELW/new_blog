@@ -24,24 +24,31 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final servicesLocator = GetIt.instance;
 
 Future<void> initDependencies() async {
-  _initAuth();
-  _initBlog();
+  // 1. Initialize Supabase first
   final supabase = await Supabase.initialize(
     url: AppSecrets.url,
     publishableKey: AppSecrets.anonKey,
   );
 
+  // 2. Initialize Hive
   Hive.init((await getApplicationDocumentsDirectory()).path);
-  servicesLocator.registerFactory(() => InternetConnection());
 
-  servicesLocator.registerLazySingleton(() => supabase.client);
-  servicesLocator.registerLazySingleton(() => Hive.box('blogs'));
+  // 3. Open Hive box BEFORE using Hive.box()
+  await Hive.openBox('blogs');
 
-  servicesLocator.registerLazySingleton(() => AppUserCubit());
+  // 4. Register core dependencies
+  servicesLocator
+    ..registerFactory(() => InternetConnection())
+    ..registerLazySingleton<SupabaseClient>(() => supabase.client)
+    ..registerLazySingleton(() => Hive.box('blogs'))
+    ..registerLazySingleton(() => AppUserCubit())
+    ..registerFactory<ConnectionChecker>(
+      () => ConnectionCheckerImpl(internetConnection: servicesLocator()),
+    );
 
-  servicesLocator.registerLazySingleton<ConnectionChecker>(
-    () => ConnectionCheckerImpl(internetConnection: servicesLocator()),
-  );
+  // 5. Register features
+  _initAuth();
+  _initBlog();
 }
 
 void _initAuth() {
@@ -52,7 +59,7 @@ void _initAuth() {
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(
         authRemoteDataSource: servicesLocator<AuthRemoteDataSource>(),
-        connectionChecker: servicesLocator<ConnectionCheckerImpl>(),
+        connectionChecker: servicesLocator(),
       ),
     )
     ..registerLazySingleton<UserSignUpUsecase>(
@@ -87,7 +94,7 @@ void _initBlog() {
     ..registerLazySingleton<BlogRepository>(
       () => BlogRepositoryImpl(
         blogRemoteDataSource: servicesLocator<BlogRemoteDataSource>(),
-        connectionChecker: servicesLocator<ConnectionCheckerImpl>(),
+        connectionChecker: servicesLocator<ConnectionChecker>(),
         blogLocalDataSource: servicesLocator<BlogLocalDataSource>(),
       ),
     )

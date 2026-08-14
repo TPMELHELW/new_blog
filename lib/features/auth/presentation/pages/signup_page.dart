@@ -43,6 +43,13 @@ class _SignupPageState extends State<SignupPage> {
             if (state is AuthFailure) {
               showSnackBar(context, state.message);
             }
+            if (state is AuthSucces) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                LoginPage.route(),
+                (route) => false,
+              );
+            }
           },
           builder: (context, state) {
             if (state is AuthLoading) {
@@ -52,6 +59,7 @@ class _SignupPageState extends State<SignupPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                SizedBox(height: 50.0),
                 Text(
                   "Sign Up.",
                   style: TextStyle(fontSize: 48.0, fontWeight: FontWeight.bold),
@@ -108,7 +116,11 @@ class _SignupPageState extends State<SignupPage> {
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   // Navigate to the login page
-                                  Navigator.push(context, LoginPage.route());
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    LoginPage.route(),
+                                    (route) => false,
+                                  );
                                 },
                             ),
                           ],

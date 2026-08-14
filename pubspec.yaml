@@ -48,6 +48,12 @@ dependencies:
   internet_connection_checker_plus: ^3.1.1
   hive: ^2.2.3
   path_provider: ^2.1.6
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icons/icon.png"
 
 dev_dependencies:
   flutter_test:

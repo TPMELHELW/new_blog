@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:new_blog_app/core/errors/server_exception.dart';
 import 'package:new_blog_app/features/auth/data/models/user_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -41,6 +40,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // final user = response.user!.toJson();
       // log(user['identity_data']['name']);
       return UserModel.fromJson(response.user!.toJson());
+    } on AuthException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -65,6 +66,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       log(response.user!.toString());
       return UserModel.fromJson(response.user!.toJson());
+    } on AuthException catch (e) {
+      throw ServerException(e.toString());
     } catch (e) {
       log(e.toString());
       throw ServerException(e.toString());

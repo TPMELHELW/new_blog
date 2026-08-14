@@ -18,3 +18,9 @@ final class AuthFailure extends AuthState {
 
   AuthFailure({required this.message});
 }
+
+final class AuthFailureCheck extends AuthState {
+  final String message;
+
+  AuthFailureCheck({required this.message});
+}
