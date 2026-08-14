@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:hive/hive.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:new_blog_app/core/common/cubit/app_user_cubit.dart';
 import 'package:new_blog_app/core/network/connection_checker.dart';
@@ -10,12 +11,14 @@ import 'package:new_blog_app/features/auth/domain/usecases/current_user_usecase.
 import 'package:new_blog_app/features/auth/domain/usecases/user_sign_in_usecase.dart';
 import 'package:new_blog_app/features/auth/domain/usecases/user_sign_up_usecase.dart';
 import 'package:new_blog_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:new_blog_app/features/blog/data/datasources/blog_local_data_source.dart';
 import 'package:new_blog_app/features/blog/data/datasources/blog_remote_data_source.dart';
 import 'package:new_blog_app/features/blog/data/repository/blog_repository_impl.dart';
 import 'package:new_blog_app/features/blog/domain/repository/blog_repository.dart';
 import 'package:new_blog_app/features/blog/domain/usecases/get_all_blogs_usecase.dart';
 import 'package:new_blog_app/features/blog/domain/usecases/upload_blog_usecase.dart';
 import 'package:new_blog_app/features/blog/presentation/bloc/blog_bloc.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final servicesLocator = GetIt.instance;
@@ -27,9 +30,12 @@ Future<void> initDependencies() async {
     url: AppSecrets.url,
     publishableKey: AppSecrets.anonKey,
   );
+
+  Hive.init((await getApplicationDocumentsDirectory()).path);
   servicesLocator.registerFactory(() => InternetConnection());
 
   servicesLocator.registerLazySingleton(() => supabase.client);
+  servicesLocator.registerLazySingleton(() => Hive.box('blogs'));
 
   servicesLocator.registerLazySingleton(() => AppUserCubit());
 
@@ -45,7 +51,7 @@ void _initAuth() {
     )
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(
-        authRemoteDataSource: servicesLocator(),
+        authRemoteDataSource: servicesLocator<AuthRemoteDataSource>(),
         connectionChecker: servicesLocator<ConnectionCheckerImpl>(),
       ),
     )
@@ -75,9 +81,14 @@ void _initBlog() {
         supabaseClient: servicesLocator<SupabaseClient>(),
       ),
     )
+    ..registerLazySingleton<BlogLocalDataSource>(
+      () => BlogLocalDataSourceImpl(box: servicesLocator()),
+    )
     ..registerLazySingleton<BlogRepository>(
       () => BlogRepositoryImpl(
         blogRemoteDataSource: servicesLocator<BlogRemoteDataSource>(),
+        connectionChecker: servicesLocator<ConnectionCheckerImpl>(),
+        blogLocalDataSource: servicesLocator<BlogLocalDataSource>(),
       ),
     )
     ..registerLazySingleton<UploadBlogUsecase>(
